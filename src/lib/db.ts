@@ -23,6 +23,7 @@ export const db: Client =
   globalForDb.wtaDb ??
   createClient({
     url: dbUrl,
+    authToken: process.env.TURSO_AUTH_TOKEN,
   });
 
 if (process.env.NODE_ENV !== "production") globalForDb.wtaDb = db;
