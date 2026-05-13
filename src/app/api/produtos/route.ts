@@ -8,9 +8,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search")?.trim() || "";
     const categoria = searchParams.get("categoria")?.trim() || "";
+    const includeImagem = searchParams.get("imagem") === "true";
 
-    // hasImagem vem do banco (flag '1' = tem imagem salva em disco)
-    const imagemCol = "CASE WHEN imagem = '1' THEN 1 ELSE 0 END as hasImagem";
+    // Na listagem, não incluir imagem por padrão (Base64 pesado)
+    const imagemCol = includeImagem ? "imagem" : "CASE WHEN imagem IS NOT NULL AND imagem != '' THEN 1 ELSE 0 END as hasImagem";
 
     let sql: string;
     const args: (string | number)[] = [];
@@ -43,20 +44,23 @@ export async function GET(request: NextRequest) {
     const result = await db.execute({ sql, args });
 
     const produtos = result.rows.map((row) => {
-      const hasImagem = (row.hasImagem as number) === 1;
-      const codigo = row.codigo as string;
-
-      return {
+      const base: Record<string, unknown> = {
         id: row.id as number,
-        codigo,
+        codigo: row.codigo as string,
         nome: row.nome as string,
         categoria: (row.categoria as string) || null,
-        hasImagem,
-        imagemUrl: hasImagem ? `/images/${codigo}.png` : null,
         precos: JSON.parse((row.precos as string) || "{}"),
         ativo: row.ativo as number,
         updatedAt: row.updatedAt as string,
       };
+
+      if (includeImagem) {
+        base.imagem = (row.imagem as string) || null;
+      } else {
+        base.hasImagem = (row.hasImagem as number) === 1;
+      }
+
+      return base;
     });
 
     // Lista categorias disponíveis
