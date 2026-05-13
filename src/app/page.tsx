@@ -361,7 +361,7 @@ export default function HomePage() {
                       <p className="text-lg font-bold text-wta-red">
                         {produto.codigo}
                       </p>
-                      <h3 className="text-lg font-semibold text-wta-black leading-tight line-clamp-3">
+                      <h3 className="text-lg font-semibold text-wta-black leading-tight line-clamp-4">
                         {produto.nome}
                       </h3>
                     </div>
